@@ -10,3 +10,15 @@ only need correctness checks.
 - add `target/release/cargo-check` into your `$PATH`
 
 Note that additonal `cargo rustc` options can still be passed through.
+
+In other words, this:
+
+```
+cargo check -v -- -Zprint-link-args
+```
+
+Should do the same thing as this:
+
+```
+cargo rustc -v -- -Zno-trans -Zprint-link-args
+```
