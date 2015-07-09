@@ -1,5 +1,7 @@
 # cargo-check
 
+[![Build Status](https://travis-ci.org/rsolomo/cargo-check.svg?branch=master)](https://travis-ci.org/rsolomo/cargo-check)
+
 This is a wrapper around `cargo rustc -- -Zno-trans`.
 It can be helpful for running a faster compile if you
 only need correctness checks.
