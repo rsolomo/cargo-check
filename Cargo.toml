@@ -1,0 +1,8 @@
+[package]
+name = "cargo-check"
+version = "0.1.0"
+authors = ["Ray Solomon <raybsolomon@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/rsolomo/cargo-check"
+homepage = "https://github.com/rsolomo/cargo-check"
