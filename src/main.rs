@@ -1,7 +1,8 @@
-use std::env;
-use std::process::{self, Command};
-
+#[cfg(not(test))]
 fn main() {
+    use std::env;
+    use std::process::{self, Command};
+
     let args = wrap_args(env::args());
     let mut command = Command::new("cargo");
     command.args(&args);
@@ -15,21 +16,16 @@ fn main() {
 
 fn wrap_args<I: Iterator<Item=String>>(it: I) -> Vec<String> {
     let mut args = vec!["rustc".to_owned()];
-    let mut has_no_trans = false;
+    let mut has_double_hyphen = false;
     for arg in it.skip(2) {
-        let is_double_hyphen = &arg == "--";
+        has_double_hyphen |= &arg == "--";
         args.push(arg);
-        if is_double_hyphen {
-            args.push("-Zno-trans".to_owned());
-            has_no_trans = true;
-        }
     }
 
-    if !has_no_trans {
+    if !has_double_hyphen {
         args.push("--".to_owned());
-        args.push("-Zno-trans".to_owned());
     }
-
+    args.push("-Zno-trans".to_owned());
     args
 }
 
@@ -62,8 +58,8 @@ fn wrap_args_2() {
     let expected = vec![
         "rustc".to_owned(),
         "--".to_owned(),
-        "-Zno-trans".to_owned(),
-        "-Zverbose".to_owned()
+        "-Zverbose".to_owned(),
+        "-Zno-trans".to_owned()
     ];
     assert_eq!(actual, expected);
 }
