@@ -22,5 +22,17 @@ cargo check -v -- -Zprint-link-args
 Should do the same thing as this:
 
 ```
-cargo rustc -v -- -Zno-trans -Zprint-link-args
+cargo rustc -v -- -Zprint-link-args -Zno-trans
+```
+
+And this:
+
+```
+cargo check --lib
+```
+
+Will do the same thing as this:
+
+```
+cargo rustc --lib -- -Zno-trans
 ```
