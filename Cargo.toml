@@ -2,7 +2,7 @@
 name = "cargo-check"
 version = "0.1.0"
 authors = ["Ray Solomon <raybsolomon@gmail.com>"]
-license = "MIT"
+license = "MIT OR Apache-2.0"
 description = "wrapper around cargo rustc -- -Zno-trans"
 keywords = ["subcommand", "cargo"]
 readme = "README.md"
