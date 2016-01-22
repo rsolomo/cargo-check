@@ -1,3 +1,6 @@
+#[cfg(all(feature = "notifications", target_os="linux"))]
+extern crate notify_rust;
+
 #[cfg(not(test))]
 fn main() {
     use std::env;
@@ -10,8 +13,36 @@ fn main() {
     let exit_status = child.wait().unwrap_or_else(|e| panic!("{}", e));
 
     if let Some(code) = exit_status.code() {
+        notify(exit_status.success());
         process::exit(code);
     }
+}
+
+#[cfg(all(feature = "notifications", target_os="linux"))]
+fn notify(success:bool){
+    use notify_rust::Notification;
+
+    if success {
+        Notification::new()
+            .summary("Cargo Check Ok")
+            .body("crate would probably compile")
+            .icon("dialog-ok")
+            .show().unwrap();
+    }
+    else{
+        Notification::new()
+            .summary("Cargo Check")
+            .body("crate would not compile")
+            .icon("dialog-cancel")
+            .show().unwrap();
+    }
+
+}
+
+#[cfg(not(feature = "notifications"))]
+fn notify(_success:bool){
+    //println!("build without notifications");
+    //do nothing here
 }
 
 fn wrap_args<T, I>(it: I) -> Vec<String>
