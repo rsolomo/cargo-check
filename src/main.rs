@@ -1,16 +1,77 @@
-#[cfg(not(test))]
+extern crate serde_json;
+
+use std::env;
+use std::process::{self, Command};
+use std::str;
+
+use serde_json::Value;
+
+#[derive(Debug)]
+struct Target {
+    name: String,
+    kind: String,
+}
+
+fn parse_targets(metadata: &str) -> Vec<Target> {
+    let metadata: Value = serde_json::from_str(&metadata).unwrap();
+
+    let targets = metadata.find("packages").unwrap().as_array().unwrap()[0]
+        .find("targets")
+        .unwrap()
+        .as_array()
+        .unwrap();
+
+    targets.into_iter()
+        .map(|t| {
+            let t = t.as_object().unwrap();
+
+            Target {
+                name: t["name"].as_str().unwrap().to_owned(),
+                kind: t["kind"]
+                        .as_array()
+                        .unwrap()[0]
+                    .as_str()
+                    .unwrap()
+                    .to_owned(),
+            }
+        })
+        .collect()
+}
+
 fn main() {
-    use std::env;
-    use std::process::{self, Command};
+    let args: Vec<_> = env::args().collect();
 
-    let args = wrap_args(env::args());
-    let mut command = Command::new("cargo");
-    command.args(&args);
-    let mut child = command.spawn().unwrap_or_else(|e| panic!("{}", e));
-    let exit_status = child.wait().unwrap_or_else(|e| panic!("{}", e));
+    let targets = {
+        let output = Command::new("cargo").arg("metadata").arg("--no-deps").output().unwrap();
+        parse_targets(str::from_utf8(&output.stdout).unwrap())
+    };
 
-    if let Some(code) = exit_status.code() {
-        process::exit(code);
+    let num_targets = targets.len();
+
+    for target in &targets {
+        let mut args = args.clone();
+
+        if num_targets > 1 {
+            match &target.kind[..] {
+                "lib" => args.push("--lib".to_owned()),
+                "bin" => {
+                    args.push("--bin".to_owned());
+                    args.push(target.name.to_owned());
+                }
+                _ => (),
+            }
+        }
+
+        args = wrap_args(args);
+
+        let mut command = Command::new("cargo");
+        command.args(&args);
+        let mut child = command.spawn().unwrap_or_else(|e| panic!("{}", e));
+        let exit_status = child.wait().unwrap_or_else(|e| panic!("{}", e));
+
+        if let Some(code) = exit_status.code() {
+            process::exit(code);
+        }
     }
 }
 

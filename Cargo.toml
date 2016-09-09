@@ -8,3 +8,6 @@ keywords = ["subcommand", "cargo"]
 readme = "README.md"
 repository = "https://github.com/rsolomo/cargo-check"
 homepage = "https://github.com/rsolomo/cargo-check"
+
+[dependencies]
+serde_json = "0.8"
