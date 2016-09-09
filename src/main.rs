@@ -16,7 +16,8 @@ fn main() {
 
 fn wrap_args<T, I>(it: I) -> Vec<String>
     where T: AsRef<str>,
-          I: IntoIterator<Item=T> {
+          I: IntoIterator<Item = T>
+{
 
     let it = it.into_iter();
     let mut args = vec!["rustc".to_owned()];
@@ -37,35 +38,16 @@ fn wrap_args<T, I>(it: I) -> Vec<String>
 
 #[test]
 fn wrap_args_1() {
-    let args = [
-        "/usr/local/bin/cargo-check",
-        "check",
-        "-h"
-    ];
+    let args = ["/usr/local/bin/cargo-check", "check", "-h"];
     let actual = wrap_args(&args);
-    let expected = [
-        "rustc",
-        "-h",
-        "--",
-        "-Zno-trans"
-    ];
+    let expected = ["rustc", "-h", "--", "-Zno-trans"];
     assert_eq!(actual, expected);
 }
 
 #[test]
 fn wrap_args_2() {
-    let args = [
-        "/usr/local/bin/cargo-check",
-        "check",
-        "--",
-        "-Zverbose"
-    ];
+    let args = ["/usr/local/bin/cargo-check", "check", "--", "-Zverbose"];
     let actual = wrap_args(&args);
-    let expected = [
-        "rustc",
-        "--",
-        "-Zverbose",
-        "-Zno-trans"
-    ];
+    let expected = ["rustc", "--", "-Zverbose", "-Zno-trans"];
     assert_eq!(actual, expected);
 }
