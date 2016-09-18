@@ -25,7 +25,7 @@ Should do the same thing as this:
 cargo rustc -v -- -Zprint-link-args -Zno-trans
 ```
 
-If lib or bin targets are present the will be added to `cargo rustc` automatically.
+If lib or bin targets are present they will be added to `cargo rustc` automatically.
 
 ## License
 
