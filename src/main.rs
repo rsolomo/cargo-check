@@ -39,76 +39,35 @@ fn parse_targets(metadata: &str) -> Vec<Target> {
 }
 
 fn main() {
-    let args: Vec<_> = env::args().collect();
-
     let targets = {
         let output = Command::new("cargo").arg("metadata").arg("--no-deps").output().unwrap();
         parse_targets(str::from_utf8(&output.stdout).unwrap())
     };
 
-    let num_targets = targets.len();
-
     for target in &targets {
-        let mut args = args.clone();
+        let mut args = vec!["rustc".to_owned()];
 
-        if num_targets > 1 {
-            match &target.kind[..] {
-                "lib" => args.push("--lib".to_owned()),
-                "bin" => {
-                    args.push("--bin".to_owned());
-                    args.push(target.name.to_owned());
-                }
-                _ => (),
+        match &target.kind[..] {
+            "lib" => args.push("--lib".to_owned()),
+            "bin" => {
+                args.push("--bin".to_owned());
+                args.push(target.name.to_owned())
             }
-        }
+            _ => (),
+        };
 
-        args = wrap_args(args);
-
-        let mut command = Command::new("cargo");
-        command.args(&args);
-        let mut child = command.spawn().unwrap_or_else(|e| panic!("{}", e));
-        let exit_status = child.wait().unwrap_or_else(|e| panic!("{}", e));
-
-        if let Some(code) = exit_status.code() {
-            process::exit(code);
-        }
-    }
-}
-
-fn wrap_args<T, I>(it: I) -> Vec<String>
-    where T: AsRef<str>,
-          I: IntoIterator<Item = T>
-{
-
-    let it = it.into_iter();
-    let mut args = vec!["rustc".to_owned()];
-    let mut has_double_hyphen = false;
-
-    for arg in it.skip(2) {
-        let arg = arg.as_ref().to_owned();
-        has_double_hyphen |= &arg == "--";
-        args.push(arg);
-    }
-
-    if !has_double_hyphen {
+        args.extend(env::args().skip(2).take_while(|arg| arg != "--"));
         args.push("--".to_owned());
+        args.extend(env::args().skip(2).skip_while(|arg| arg != "--").skip(1));
+        args.push("-Zno-trans".to_owned());
+
+        let status = Command::new("cargo").args(&args).status().unwrap();
+
+        // If the command didn't execute successfully, exit this process with
+        // the same code, defaulting to an arbitrary error exit code (1) if
+        // `status.code()` returns None.
+        if !status.success() {
+            process::exit(status.code().unwrap_or(1));
+        }
     }
-    args.push("-Zno-trans".to_owned());
-    args
-}
-
-#[test]
-fn wrap_args_1() {
-    let args = ["/usr/local/bin/cargo-check", "check", "-h"];
-    let actual = wrap_args(&args);
-    let expected = ["rustc", "-h", "--", "-Zno-trans"];
-    assert_eq!(actual, expected);
-}
-
-#[test]
-fn wrap_args_2() {
-    let args = ["/usr/local/bin/cargo-check", "check", "--", "-Zverbose"];
-    let actual = wrap_args(&args);
-    let expected = ["rustc", "--", "-Zverbose", "-Zno-trans"];
-    assert_eq!(actual, expected);
 }
