@@ -39,8 +39,28 @@ fn parse_targets(metadata: &str) -> Vec<Target> {
 }
 
 fn main() {
+    let env_args: Vec<_> = env::args().collect();
+    for arg in &env_args {
+        if arg == "--version" {
+            return println!("{}", env!("CARGO_PKG_VERSION"));
+        }
+    }
     let targets = {
-        let output = Command::new("cargo").arg("metadata").arg("--no-deps").output().unwrap();
+        let output = match Command::new("cargo").arg("metadata").arg("--no-deps").output() {
+            Ok(output) => output,
+            Err(_) => {
+                println!("Failed to run 'cargo metadata'");
+                process::exit(1);
+            }
+        };
+        if ! output.status.success() {
+            print!("{}", String::from_utf8_lossy(&output.stderr));
+            if let Some(code) = output.status.code() {
+                process::exit(code);
+            } else {
+                process::exit(1);
+            }
+        }
         parse_targets(str::from_utf8(&output.stdout).unwrap())
     };
 
