@@ -5,7 +5,12 @@ use std::process::Command;
 use std::path::PathBuf;
 
 fn cargo_check() -> Command {
-    Command::new(env::current_exe().unwrap().parent().unwrap().join("cargo-check"))
+    let mut me = env::current_exe().unwrap();
+    me.pop();
+    if me.ends_with("deps") {
+        me.pop();
+    }
+    Command::new(me.join("cargo-check"))
 }
 
 #[test]
